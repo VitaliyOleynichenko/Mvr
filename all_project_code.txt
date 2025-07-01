@@ -1,0 +1,431 @@
+﻿===== C:\localhost\work\api\mvr.php =====
+<?php
+header('Content-Type: application/json; charset=UTF-8');
+
+$zone    = $_GET['zone']    ?? '';
+$dataset = $_GET['dataset'] ?? '';
+$afterId = isset($_GET['after_id']) ? (int)$_GET['after_id'] : 0;
+
+// Р”РµРјРѕСЂРµР¶РёРј
+if ($dataset) {
+    $path = __DIR__ . "/../data/dataset{$dataset}/mvr.json";
+    if (file_exists($path)) {
+        echo file_get_contents($path);
+        exit;
+    }
+}
+
+// Р–РёРІР°СЏ Р‘Р”
+try {
+    $pdo = new PDO(
+        'mysql:host=localhost;dbname=yourdb;charset=utf8',
+        'user','pass',
+        [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]
+    );
+    $sql = "SELECT id, x, y, length, krat FROM mvr WHERE zone = :zone";
+    if ($afterId) {
+        $sql .= " AND id > :after";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':zone'=>$zone, ':after'=>$afterId]);
+    } else {
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':zone'=>$zone]);
+    }
+    echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+} catch (Exception $e) {
+    echo json_encode([]);
+}
+===== C:\localhost\work\api\signals.php =====
+<?php
+header('Content-Type: application/json; charset=UTF-8');
+
+$zone    = $_GET['zone']    ?? '';
+$dataset = $_GET['dataset'] ?? '';
+
+// Р”РµРјРѕСЂРµР¶РёРј
+if ($dataset) {
+    $path = __DIR__ . "/../data/dataset{$dataset}/signals.json";
+    if (file_exists($path)) {
+        echo file_get_contents($path);
+        exit;
+    }
+}
+
+// Р–РёРІР°СЏ Р‘Р”
+try {
+    $pdo = new PDO(
+        'mysql:host=localhost;dbname=yourdb;charset=utf8',
+        'user','pass',
+        [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]
+    );
+    $stmt = $pdo->prepare(
+      "SELECT state FROM signals WHERE zone = :zone LIMIT 1"
+    );
+    $stmt->execute([':zone'=>$zone]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    echo json_encode($row ?: ['state'=>'idle']);
+} catch (Exception $e) {
+    echo json_encode(['state'=>'idle']);
+}
+===== C:\localhost\work\css\style.css =====
+/* РЎР±СЂРѕСЃ СЃС‚РёР»РµР№ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* РћСЃРЅРѕРІРЅРѕР№ С„РѕРЅ Рё С€СЂРёС„С‚С‹ */
+body {
+  background: #2b2833;
+  background: linear-gradient(135deg, #2b2833 0%, #5d4b66 100%);
+  color: #f2f2f2;
+  font-family: 'Poppins', sans-serif;
+  overflow: hidden;
+}
+
+/* РҐРµРґРµСЂ */
+.page-header {
+  position: absolute;
+  top: 0; left: 0; width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+/* РљРЅРѕРїРєРё РІС‹Р±РѕСЂР° РґР°РЅРЅС‹С… */
+.buttons button {
+  margin-right: 12px;
+  padding: 10px 20px;
+  background: linear-gradient(45deg, #ff7e5f, #feb47b);
+  border: none;
+  border-radius: 50px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.buttons button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+}
+
+/* РќР°РІРёРіР°С†РёСЏ РњР’Р  */
+.nav {
+  display: flex;
+}
+.nav-link {
+  margin-left: 16px;
+  padding: 8px 14px;
+  color: #ddd;
+  text-decoration: none;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: background 0.2s, color 0.2s;
+}
+.nav-link.active,
+.nav-link:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+/* РЎРµРєС†РёСЏ СЃ РњР’Р  Рё РёРЅРґРёРєР°С‚РѕСЂРѕРј */
+.machine-container {
+  position: absolute;
+  top: 100px; left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+/* РЎС…РµРјР°С‚РёС‡РЅРѕРµ РёР·РѕР±СЂР°Р¶РµРЅРёРµ РњР’Р  */
+.machine-schematic {
+  position: relative;
+  width: 140px;
+  height: 80px;
+}
+.machine-schematic .body {
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 100%; height: 50px;
+  background: #3d3d3d;
+  border: 4px solid #666;
+  border-radius: 8px;
+  box-shadow: inset 0 0 14px rgba(0,0,0,0.6);
+}
+.machine-schematic .blade {
+  position: absolute;
+  top: -15px; left: 50%;
+  transform: translateX(-50%);
+  width: 10px; height: 90px;
+  background: #bbb;
+  box-shadow: 0 0 8px #fff;
+  border-radius: 4px;
+}
+
+/* РРЅРґРёРєР°С‚РѕСЂ СЃРѕСЃС‚РѕСЏРЅРёСЏ */
+.indicator-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.indicator {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  box-shadow: 0 0 12px rgba(0,0,0,0.4);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.indicator--idle {
+  background: #4caf50;
+  box-shadow: 0 0 16px #4caf50;
+}
+.indicator--cutting {
+  background: #ff9800;
+  box-shadow: 0 0 16px #ff9800;
+}
+.state-text {
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+/* Р РѕР»СЊРіР°РЅРі (Canvas) */
+#conveyor-canvas {
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 100%;
+  height: 40vh;  /* СѓРІРµР»РёС‡РµРЅРЅР°СЏ РІС‹СЃРѕС‚Р° */
+  background: #444;
+  box-shadow: inset 0 8px 16px rgba(0,0,0,0.5);
+}
+
+/* Р’С‹СЃРѕС‚Р° Р·Р°РіРѕС‚РѕРІРѕРє: Р·Р°РґР°С‘С‚СЃСЏ РІ JS (4Г—30px = 120px) */
+
+===== C:\localhost\work\js\config.js =====
+// РџРѕР·РёС†РёРё Р·РѕРЅС‹ СЂРµР·РєРё РІ РґРѕР»СЏС… С€РёСЂРёРЅС‹
+const CUT_ZONE = { start: 0.33, end: 0.38 };
+===== C:\localhost\work\js\script.js =====
+(() => {
+  const API_BASE = 'api';
+  const canvas   = document.getElementById('conveyor-canvas');
+  const ctx      = canvas.getContext('2d');
+
+  const indicatorEl = document.getElementById('indicator');
+  const stateTextEl = document.getElementById('state-text');
+  const buttons     = document.querySelectorAll('.buttons button');
+  const zone        = location.pathname.includes('mvr2') ? 'mvr2' : 'mvr1';
+
+  // РЎРѕС…СЂР°РЅСЏРµРј РІС‹Р±РѕСЂ РґР°С‚Р°СЃРµС‚Р° РІ localStorage РїРѕ Р·РѕРЅРµ
+  let dataset     = localStorage.getItem(`dataset_${zone}`) || null;
+  let slabs       = [];
+  let state       = 'idle';
+  let splitDone   = false;
+
+  function resize() {
+    canvas.width  = innerWidth;
+    canvas.height = innerHeight * 0.3;
+    drawAll();
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      dataset = btn.dataset.ds;
+      localStorage.setItem(`dataset_${zone}`, dataset);
+      splitDone = false;
+      loadAll();
+    });
+  });
+
+  async function loadAll() {
+    await Promise.all([loadSlabs(), loadState()]);
+    if (dataset && state === 'cutting' && !splitDone) {
+      applySplit();
+      splitDone = true;
+    }
+    drawAll();
+  }
+
+  async function loadSlabs() {
+    let url = `${API_BASE}/mvr.php?zone=${zone}`;
+    if (dataset) url += `&dataset=${dataset}`;
+    try {
+      const res = await fetch(url);
+      slabs = await res.json();
+    } catch {
+      slabs = [];
+    }
+  }
+
+  async function loadState() {
+    let url = `${API_BASE}/signals.php?zone=${zone}`;
+    if (dataset) url += `&dataset=${dataset}`;
+    try {
+      const res = await fetch(url);
+      const obj = await res.json();
+      state = obj.state || 'idle';
+    } catch {
+      state = 'idle';
+    }
+    indicatorEl.className = `indicator indicator--${state}`;
+    stateTextEl.textContent = state === 'cutting' ? 'Р РµР¶РµС‚вЂ¦' : 'РћР¶РёРґР°РЅРёРµ СЂРµР·Р°';
+  }
+
+  function applySplit() {
+    const candidates = slabs.filter(s => s.krat > 1);
+    if (!candidates.length) return;
+    let target = candidates.reduce((a, b) => b.x > a.x ? b : a, candidates[0]);
+    const maxId = Math.max(...slabs.map(s => s.id));
+    const partLen = target.length / target.krat;
+    target.krat -= 1;
+    target.length = target.krat * partLen;
+    const newX = CUT_ZONE.end * canvas.width + 50;
+    slabs.push({
+      id: maxId + 1,
+      x: Math.round(newX),
+      y: target.y,
+      length: Math.round(partLen),
+      krat: 1
+    });
+  }
+
+  function drawAll() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawConveyor();
+    slabs.forEach(drawSlab);
+  }
+
+  function drawConveyor() {
+    ctx.fillStyle = '#777';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'rgba(0,0,0,0.1)';
+    for (let y = 0; y < canvas.height; y += 8) {
+      for (let x = 0; x < canvas.width; x += 8) {
+        ctx.fillRect(x, y, 2, 2);
+      }
+    }
+    const x0 = CUT_ZONE.start * canvas.width;
+    const x1 = CUT_ZONE.end   * canvas.width;
+    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.fillRect(x0, 0, x1 - x0, canvas.height);
+  }
+
+  function drawSlab(s) {
+    ctx.fillStyle   = '#e08a3a';
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth   = 2;
+    ctx.fillRect(s.x, s.y, s.length, 120);
+    ctx.strokeRect(s.x, s.y, s.length, 120);
+    if (s.krat > 1) {
+      ctx.save();
+      ctx.setLineDash([6, 4]);
+      for (let i = 1; i < s.krat; i++) {
+        const px = s.x + i * (s.length / s.krat);
+        ctx.beginPath();
+        ctx.moveTo(px, s.y);
+        ctx.lineTo(px, s.y + 120);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
+  if (!dataset) {
+    loadAll();
+    setInterval(loadAll, 5000);
+  } else {
+    loadAll();
+  }
+})();
+===== C:\localhost\work\mvr1.html =====
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>РњР’Р 1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="page-header">
+    <div class="buttons">
+      <button data-ds="1">Р”Р°РЅРЅС‹Рµ 1</button>
+      <button data-ds="2">Р”Р°РЅРЅС‹Рµ 2</button>
+      <button data-ds="3">Р”Р°РЅРЅС‹Рµ 3</button>
+      <button data-ds="4">Р”Р°РЅРЅС‹Рµ 4</button>
+      <button data-ds="5">Р”Р°РЅРЅС‹Рµ 5</button>
+    </div>
+    <nav class="nav">
+      <a href="mvr1.html" class="nav-link active">РњР’Р 1</a>
+      <a href="mvr2.html" class="nav-link">РњР’Р 2</a>
+    </nav>
+  </header>
+
+  <section class="machine-container">
+    <div class="machine-schematic">
+      <div class="body"></div>
+      <div class="blade"></div>
+    </div>
+    <div class="indicator-container">
+      <div id="indicator" class="indicator indicator--idle"></div>
+      <span id="state-text" class="state-text">РћР¶РёРґР°РЅРёРµ СЂРµР·Р°</span>
+    </div>
+  </section>
+
+  <canvas id="conveyor-canvas"></canvas>
+
+  <script src="js/config.js"></script>
+  <script src="js/script.js"></script>
+</body>
+</html>
+
+===== C:\localhost\work\mvr2.html =====
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>РњР’Р 1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="page-header">
+    <div class="buttons">
+      <button data-ds="1">Р”Р°РЅРЅС‹Рµ 1</button>
+      <button data-ds="2">Р”Р°РЅРЅС‹Рµ 2</button>
+      <button data-ds="3">Р”Р°РЅРЅС‹Рµ 3</button>
+      <button data-ds="4">Р”Р°РЅРЅС‹Рµ 4</button>
+      <button data-ds="5">Р”Р°РЅРЅС‹Рµ 5</button>
+    </div>
+    <nav class="nav">
+      <a href="mvr1.html" class="nav-link active">РњР’Р 1</a>
+      <a href="mvr2.html" class="nav-link">РњР’Р 2</a>
+    </nav>
+  </header>
+
+  <section class="machine-container">
+    <div class="machine-schematic">
+      <div class="body"></div>
+      <div class="blade"></div>
+    </div>
+    <div class="indicator-container">
+      <div id="indicator" class="indicator indicator--idle"></div>
+      <span id="state-text" class="state-text">РћР¶РёРґР°РЅРёРµ СЂРµР·Р°</span>
+    </div>
+  </section>
+
+  <canvas id="conveyor-canvas"></canvas>
+
+  <script src="js/config.js"></script>
+  <script src="js/script.js"></script>
+</body>
+</html>
+

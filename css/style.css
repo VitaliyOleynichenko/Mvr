@@ -1,0 +1,138 @@
+/* Сброс стилей */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Основной фон и шрифты */
+body {
+  background: #2b2833;
+  background: linear-gradient(135deg, #2b2833 0%, #5d4b66 100%);
+  color: #000;
+  font-family: 'Poppins', sans-serif;
+  overflow: hidden;
+}
+
+/* Хедер */
+.page-header {
+  position: absolute;
+  top: 0; left: 0; width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+/* Кнопки выбора данных */
+.buttons button {
+  margin-right: 12px;
+  padding: 10px 20px;
+  background: linear-gradient(45deg, #ff7e5f, #feb47b);
+  border: none;
+  border-radius: 50px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #000;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.buttons button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+}
+
+/* Навигация МВР */
+.nav {
+  display: flex;
+}
+.nav-link {
+  margin-left: 16px;
+  padding: 8px 14px;
+  color: #000;
+  text-decoration: none;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: background 0.2s, color 0.2s;
+}
+.nav-link.active,
+.nav-link:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+/* Секция с МВР и индикатором */
+.machine-container {
+  position: absolute;
+  top: 100px; left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+/* Схематичное изображение МВР */
+.machine-schematic {
+  position: relative;
+  width: 140px;
+  height: 80px;
+}
+.machine-schematic .body {
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 100%; height: 50px;
+  background: #3d3d3d;
+  border: 4px solid #666;
+  border-radius: 8px;
+  box-shadow: inset 0 0 14px rgba(0,0,0,0.6);
+}
+.machine-schematic .blade {
+  position: absolute;
+  top: -15px; left: 50%;
+  transform: translateX(-50%);
+  width: 10px; height: 90px;
+  background: #bbb;
+  box-shadow: 0 0 8px #fff;
+  border-radius: 4px;
+}
+
+/* Индикатор состояния */
+.indicator-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.indicator {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  box-shadow: 0 0 12px rgba(0,0,0,0.4);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.indicator--idle {
+  background: #4caf50;
+  box-shadow: 0 0 16px #4caf50;
+}
+.indicator--cutting {
+  background: #ff9800;
+  box-shadow: 0 0 16px #ff9800;
+}
+.state-text {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #000;
+}
+
+/* Рольганг (Canvas) */
+#conveyor-canvas {
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 100%;
+  height: 40vh;  /* увеличенная высота */
+  background: #444;
+  box-shadow: inset 0 8px 16px rgba(0,0,0,0.5);
+}
+
+/* Высота заготовок: задаётся в JS (4×30px = 120px) */
